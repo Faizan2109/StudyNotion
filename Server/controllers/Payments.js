@@ -6,7 +6,7 @@ const mailSender = require("../utils/mailSender")
 const mongoose = require("mongoose")
 const {
   courseEnrollmentEmail,
-} = require("../Mail/Templates/courseEnrollmentEmail")
+} = require("../Mail/Templates/CourseEnrollmentEmail")
 const { paymentSuccessEmail } = require("../Mail/Templates/paymentSuccessEmail")
 const CourseProgress = require("../models/CourseProgress")
 
