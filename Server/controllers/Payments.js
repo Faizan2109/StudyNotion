@@ -10,8 +10,12 @@ const { paymentSuccessEmail } = require("../Mail/Templates/paymentSuccessEmail")
 
 // ========== CREATE CHECKOUT SESSION ==========
 exports.capturePayment = async (req, res) => {
+  console.log("Stripe Key used:", process.env.STRIPE_SECRET_KEY);
+
   const { courses } = req.body;
   const userId = req.user.id;
+
+  console.log("Courses to be purchased:", courses);
 
   if (!courses || courses.length === 0) {
     return res.status(400).json({ success: false, message: "Please Provide Course IDs" });
@@ -49,8 +53,8 @@ exports.capturePayment = async (req, res) => {
       payment_method_types: ["card"],
       line_items,
       mode: "payment",
-      success_url: `${process.env.FRONTEND_URL}/payment-success?userId=${userId}&courses=${courses.join(",")}&amount=${totalAmount * 100}`,
-      cancel_url: `${process.env.FRONTEND_URL}/payment-failed`,
+      success_url: `${process.env.FRONTEND_URL?.startsWith('http') ? process.env.FRONTEND_URL : 'https://' + process.env.FRONTEND_URL}/payment-success?userId=${userId}&courses=${courses.join(",")}&amount=${totalAmount * 100}`,
+      cancel_url: `${process.env.FRONTEND_URL?.startsWith('http') ? process.env.FRONTEND_URL : 'https://' + process.env.FRONTEND_URL}/payment-failed`,
     });
 
     res.status(200).json({ success: true, sessionId: session.id });
