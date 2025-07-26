@@ -26,9 +26,19 @@ exports.createCourse = async (req, res) => {
     // Get thumbnail image from request files
     const thumbnail = req.files.thumbnailImage
 
-    // Convert the tag and instructions from stringified Array to Array
-    const tag = JSON.parse(_tag)
-    const instructions = JSON.parse(_instructions)
+    // Fix: Check if _tag and _instructions are strings before parsing
+    let tag = [];
+    let instructions = [];
+    try {
+      tag = typeof _tag === "string" ? JSON.parse(_tag) : _tag;
+    } catch (err) {
+      tag = [];
+    }
+    try {
+      instructions = typeof _instructions === "string" ? JSON.parse(_instructions) : _instructions;
+    } catch (err) {
+      instructions = [];
+    }
 
     console.log("tag", tag)
     console.log("instructions", instructions)
