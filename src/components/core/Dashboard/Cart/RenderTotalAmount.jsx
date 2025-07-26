@@ -1,20 +1,46 @@
-import { useDispatch, useSelector } from "react-redux"
-import { useNavigate } from "react-router-dom"
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { loadStripe } from "@stripe/stripe-js";
 
-import IconBtn from "../../../common/IconBtn"
-import { buyCourse } from "../../../../services/operations/studentFeaturesAPI"
+import IconBtn from "../../../common/IconBtn";
+import { studentEndpoints } from "../../../../../src/services/apis";
+
+// Stripe public key (test mode)
+const stripePromise = loadStripe("pk_test_51RaCSs2Y3a12XFy2Wiz2Ip5nMUFJ8MSvKtHL8TX5fULNXNqfD9TJTQ00xDzcKCda");
 
 export default function RenderTotalAmount() {
-  const { total, cart } = useSelector((state) => state.cart)
-  const { token } = useSelector((state) => state.auth)
-  const { user } = useSelector((state) => state.profile)
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
+  const { total, cart } = useSelector((state) => state.cart);
+  const { token } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.profile);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const handleBuyCourse = () => {
-    const courses = cart.map((course) => course._id)
-    buyCourse(token, courses, user, navigate, dispatch)
-  }
+  const handleBuyCourse = async () => {
+    const stripe = await stripePromise;
+    const courses = cart.map((course) => course._id);
+
+    try {
+      const response = await fetch(studentEndpoints.COURSE_PAYMENT_API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Pass token if auth is used
+        },
+        body: JSON.stringify({ courses }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        await stripe.redirectToCheckout({ sessionId: data.sessionId });
+      } else {
+        alert("Error starting payment: " + data.message);
+      }
+    } catch (error) {
+      console.error("Stripe payment error:", error);
+      alert("Something went wrong while processing payment.");
+    }
+  };
 
   return (
     <div className="min-w-[280px] rounded-md border-[1px] border-richblack-700 bg-richblack-800 p-6">
@@ -26,5 +52,5 @@ export default function RenderTotalAmount() {
         customClasses="w-full justify-center"
       />
     </div>
-  )
+  );
 }
