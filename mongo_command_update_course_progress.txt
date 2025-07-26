@@ -1,0 +1,19 @@
+# MongoDB command to update course progress by adding a completed subsection (video)
+
+# Variables to replace:
+# USER_ID = "68823db5abcd11b8158567e5"
+# COURSE_ID = "68823e5aabcd11b815856808"
+# SUBSECTION_ID = "<subsection_object_id>"
+
+db.courseprogress.updateOne(
+  {
+    courseID: ObjectId("68823e5aabcd11b815856808"),
+    userId: ObjectId("68823db5abcd11b8158567e5")
+  },
+  {
+    $addToSet: { completedVideos: ObjectId("<subsection_object_id>") }
+  }
+)
+
+# This command adds the subsection ID to the completedVideos array if it is not already present.
+# Replace <subsection_object_id> with the actual subsection ID you want to mark as completed.

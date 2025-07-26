@@ -16,10 +16,11 @@ exports.updateCourseProgress = async (req, res) => {
     }
 
     // Find the course progress document for the user and course
-    let courseProgress = await CourseProgress.findOne({
-      courseID: courseId,
-      userId: userId,
-    })
+   let courseProgress = await CourseProgress.findOne({
+  courseID: new mongoose.Types.ObjectId(courseId),
+  userId: new mongoose.Types.ObjectId(userId),
+})
+
 
     if (!courseProgress) {
       // If course progress doesn't exist, create a new one
@@ -47,53 +48,60 @@ exports.updateCourseProgress = async (req, res) => {
   }
 }
 
-// exports.getProgressPercentage = async (req, res) => {
-//   const { courseId } = req.body
-//   const userId = req.user.id
+exports.getProgressPercentage = async (req, res) => {
+  const { courseId } = req.body
+  const userId = req.user.id
 
-//   if (!courseId) {
-//     return res.status(400).json({ error: "Course ID not provided." })
-//   }
+  if (!courseId) {
+    return res.status(400).json({ error: "Course ID not provided." })
+  }
 
-//   try {
-//     // Find the course progress document for the user and course
-//     let courseProgress = await CourseProgress.findOne({
-//       courseID: courseId,
-//       userId: userId,
-//     })
-//       .populate({
-//         path: "courseID",
-//         populate: {
-//           path: "courseContent",
-//         },
-//       })
-//       .exec()
+  try {
+    // Find the course progress document for the user and course
+    let courseProgress = await CourseProgress.findOne({
+      courseID: courseId,
+      userId: userId,
+    })
+      .populate({
+        path: "courseID",
+        populate: {
+          path: "courseContent",
+          populate: {
+            path: "subSection",  // ✅ Important: populate subsections inside sections
+          },
+        },
+      })
+      .exec()
 
-//     if (!courseProgress) {
-//       return res
-//         .status(400)
-//         .json({ error: "Can not find Course Progress with these IDs." })
-//     }
-//     console.log(courseProgress, userId)
-//     let lectures = 0
-//     courseProgress.courseID.courseContent?.forEach((sec) => {
-//       lectures += sec.subSection.length || 0
-//     })
+    if (!courseProgress) {
+      return res
+        .status(400)
+        .json({ error: "Can not find Course Progress with these IDs." })
+    }
 
-//     let progressPercentage =
-//       (courseProgress.completedVideos.length / lectures) * 100
+    console.log("CourseProgress:", courseProgress)
 
-//     // To make it up to 2 decimal point
-//     const multiplier = Math.pow(10, 2)
-//     progressPercentage =
-//       Math.round(progressPercentage * multiplier) / multiplier
+    let totalLectures = 0
 
-//     return res.status(200).json({
-//       data: progressPercentage,
-//       message: "Succesfully fetched Course progress",
-//     })
-//   } catch (error) {
-//     console.error(error)
-//     return res.status(500).json({ error: "Internal server error" })
-//   }
-// }
+    // ✅ Now count the populated subsections
+    courseProgress.courseID.courseContent?.forEach((section) => {
+      totalLectures += section?.subSection?.length || 0
+    })
+
+    const completed = courseProgress.completedVideos.length
+    let progressPercentage = (completed / totalLectures) * 100
+
+    // Round to 2 decimal places
+    progressPercentage = Math.round(progressPercentage * 100) / 100
+
+    return res.status(200).json({
+      data: progressPercentage,
+      message: "Successfully fetched Course progress",
+    })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+}
+
+

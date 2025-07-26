@@ -36,18 +36,10 @@ const VideoDetails = () => {
           (course) => course._id === sectionId
         )
         // console.log("filteredData", filteredData)
-        if (filteredData.length === 0) {
-          setVideoData(null)
-          return
-        }
-        const filteredVideoData = filteredData[0]?.subSection.filter(
+        const filteredVideoData = filteredData?.[0]?.subSection.filter(
           (data) => data._id === subSectionId
         )
         // console.log("filteredVideoData", filteredVideoData)
-        if (!filteredVideoData || filteredVideoData.length === 0) {
-          setVideoData(null)
-          return
-        }
         setVideoData(filteredVideoData[0])
         setPreviewSource(courseEntireData.thumbnail)
         setVideoEnded(false)
@@ -205,14 +197,14 @@ const VideoDetails = () => {
               {!completedLectures.includes(subSectionId) && (
                 <IconBtn
                   disabled={loading}
-                  onClick={() => handleLectureCompletion()}
+                  onclick={() => handleLectureCompletion()}
                   text={!loading ? "Mark As Completed" : "Loading..."}
                   customClasses="text-xl max-w-max px-4 mx-auto"
                 />
               )}
               <IconBtn
                 disabled={loading}
-                onClick={() => {
+                onclick={() => {
                   if (playerRef?.current) {
                     // set the current time of the video to 0
                     playerRef?.current?.seek(0)

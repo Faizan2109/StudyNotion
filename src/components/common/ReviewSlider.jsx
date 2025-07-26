@@ -22,17 +22,22 @@ function ReviewSlider() {
   const [reviews, setReviews] = useState([])
   const truncateWords = 15
 
-  useEffect(() => {
-    ;(async () => {
+ useEffect(() => {
+  (async () => {
+    try {
       const { data } = await apiConnector(
         "GET",
         ratingsEndpoints.REVIEWS_DETAILS_API
-      )
+      );
       if (data?.success) {
-        setReviews(data?.data)
+        setReviews(data?.data);
       }
-    })()
-  }, [])
+    } catch (error) {
+      console.error("Failed to fetch reviews:", error);
+    }
+  })();
+}, []);
+
 
   // console.log(reviews)
 
