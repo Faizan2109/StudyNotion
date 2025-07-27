@@ -28,6 +28,7 @@ app.use(
     origin: [
       "http://localhost:3000",
       "https://study-notion-faizan.vercel.app"
+      
     ],
     credentials: true,
   })

@@ -34,35 +34,38 @@ export function getUserDetails(token, navigate) {
   }
 }
 
+// ✅ Final working version
 export async function getUserEnrolledCourses(token) {
-  const toastId = toast.loading("Loading...")
-  let result = []
+  const toastId = toast.loading("Loading your courses...");
+  let result = [];
+
   try {
-    console.log("BEFORE Calling BACKEND API FOR ENROLLED COURSES");
+    console.log("🔃 Calling GET_USER_ENROLLED_COURSES_API...");
+
     const response = await apiConnector(
       "GET",
       GET_USER_ENROLLED_COURSES_API,
-      null,
+      null, // No body for GET
       {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`, // ✅ Set token properly
       }
-    )
-    console.log("AFTER Calling BACKEND API FOR ENROLLED COURSES");
-    // console.log(
-    //   "GET_USER_ENROLLED_COURSES_API API RESPONSE............",
-    //   response
-    // )
+    );
 
-    if (!response.data.success) {
-      throw new Error(response.data.message)
+    console.log("✅ Enrolled courses response:", response);
+
+    if (!response?.data?.success) {
+      throw new Error(response.data.message || "Failed to fetch courses");
     }
-    result = response.data.data
+
+    result = response.data.data;
+    toast.success("Courses loaded");
   } catch (error) {
-    console.log("GET_USER_ENROLLED_COURSES_API API ERROR............", error)
-    toast.error("Could Not Get Enrolled Courses")
+    console.error("❌ Error getting enrolled courses:", error);
+    toast.error("Could not get enrolled courses");
   }
-  toast.dismiss(toastId)
-  return result
+
+  toast.dismiss(toastId);
+  return result;
 }
 
 export async function getInstructorData(token) {

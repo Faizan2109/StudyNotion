@@ -17,6 +17,9 @@ const courseProgressSchema = new mongoose.Schema({
       ref: "SubSection",
     },
   ],
+},
+{
+  collection: "courseprogress"  // 👈 Force exact collection name
 });
 
 module.exports = mongoose.model("CourseProgress", courseProgressSchema);

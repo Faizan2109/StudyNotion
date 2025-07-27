@@ -4,6 +4,8 @@ const { capturePayment, handleStripeSuccess } = require("../controllers/Payments
 const { auth } = require("../middlewares/auth");
 
 router.post("/capture-payment", auth, capturePayment);
-router.get("/payment-success", handleStripeSuccess);
+router.post("/verify-payment", auth, handleStripeSuccess);
+
+
 
 module.exports = router;

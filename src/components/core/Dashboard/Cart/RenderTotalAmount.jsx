@@ -6,9 +6,9 @@ import IconBtn from "../../../common/IconBtn";
 import { studentEndpoints } from "../../../../../src/services/apis";
 
 // Stripe public key (test mode)
-const stripePromise = loadStripe("pk_test_51RaCSs2Y3a12XFy2Wiz2Ip5nMUFJ8MSvKtHL8TX5fULNXNqfD9TJTQ00xDzcKCda", {
-  locale: 'en'
-});
+const stripePromise = loadStripe("pk_test_51RaCSs2Y3a12XFy2Wiz2Ip5nMUFJ8MSvKtHL8TX5fULNXNqfD9RwcNMl9QyPZi6ckWrlSmBoUfZqgIop40W9TJTQ00xDzcKCda");
+
+// Removed locale option to avoid missing module error
 
 export default function RenderTotalAmount() {
   const { total, cart } = useSelector((state) => state.cart);

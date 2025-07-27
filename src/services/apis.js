@@ -18,8 +18,8 @@ export const profileEndpoints = {
 
 // STUDENTS ENDPOINTS
 export const studentEndpoints = {
-  COURSE_PAYMENT_API: BASE_URL + "/payment/capture-payment", // New Stripe checkout session
-  COURSE_SUCCESS_API: BASE_URL + "/payment/payment-success", // Stripe will hit this after payment
+  COURSE_PAYMENT_API: BASE_URL + "/payment/capture-payment", // Stripe checkout session
+  COURSE_SUCCESS_API: BASE_URL + "/payment/verify-payment",  // Backend API to enroll user
 };
 
 // COURSE ENDPOINTS

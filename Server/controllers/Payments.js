@@ -48,31 +48,58 @@ exports.capturePayment = async (req, res) => {
     });
   }
 
-  try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items,
-      mode: "payment",
-      success_url: `${process.env.FRONTEND_URL?.startsWith('http') ? process.env.FRONTEND_URL : 'https://' + process.env.FRONTEND_URL}/payment-success?userId=${userId}&courses=${courses.join(",")}&amount=${totalAmount * 100}`,
-      cancel_url: `${process.env.FRONTEND_URL?.startsWith('http') ? process.env.FRONTEND_URL : 'https://' + process.env.FRONTEND_URL}/payment-failed`,
-    });
+try {
+  console.log("🟡 Creating Stripe Checkout session...");
 
-    res.status(200).json({ success: true, sessionId: session.id });
-  } catch (error) {
-    console.error("Stripe error:", error);
-    res.status(500).json({ success: false, message: "Could not create checkout session" });
-  }
+  // Debug inputs
+  console.log("Locale:", 'en');
+  console.log("User ID:", userId);
+  console.log("Courses:", courses);
+  console.log("Total Amount (₹):", totalAmount);
+  console.log("Line Items:", JSON.stringify(line_items, null, 2));
+
+  // Construct URLs
+  const frontendBaseUrl = process.env.FRONTEND_URL?.startsWith('http')
+    ? process.env.FRONTEND_URL
+    : 'https://' + process.env.FRONTEND_URL;
+
+ const success_url = `${frontendBaseUrl}/payment-success?userId=${userId}&courses=${courses.join(",")}&amount=${totalAmount * 100}`;
+
+  const cancel_url = `${frontendBaseUrl}/payment-failed`;
+
+  console.log("Success URL:", success_url);
+  console.log("Cancel URL:", cancel_url);
+
+  // Create session
+  const session = await stripe.checkout.sessions.create({
+    locale: 'en',
+    payment_method_types: ["card"],
+    line_items,
+    mode: "payment",
+    success_url,
+    cancel_url,
+  });
+
+  console.log("✅ Stripe Checkout session created:", session.id);
+
+  res.status(200).json({ success: true, sessionId: session.id });
+} catch (error) {
+  console.error("❌ Stripe session creation error:", error);
+  res.status(500).json({ success: false, message: "Could not create checkout session" });
+}
+
 };
 
 // ========== HANDLE PAYMENT SUCCESS ==========
 exports.handleStripeSuccess = async (req, res) => {
-  const { userId, courses, amount } = req.query;
-  const courseIds = courses.split(",");
+  const { courses, amount } = req.body;
+  const userId = req.user.id;
 
   try {
-    await enrollStudents(courseIds, userId);
+    await enrollStudents(courses, userId); // directly use array
 
     const student = await User.findById(userId);
+
     await mailSender(
       student.email,
       "Payment Received",
@@ -84,19 +111,26 @@ exports.handleStripeSuccess = async (req, res) => {
       )
     );
 
-    res.status(200).json({ success: true, message: "Enrolled successfully and email sent" });
+    res.status(200).json({
+      success: true,
+      message: "Enrolled successfully and email sent",
+    });
   } catch (error) {
-    console.error("Payment success error:", error);
-    res.status(500).json({ success: false, message: "Error enrolling student" });
+    console.error("❌ Payment success error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error enrolling student",
+    });
   }
 };
+
 
 // ========== ENROLL STUDENT FUNCTION ==========
 const enrollStudents = async (courses, userId) => {
   for (const courseId of courses) {
     const enrolledCourse = await Course.findOneAndUpdate(
       { _id: courseId },
-      { $push: { studentsEnrolled: userId } },
+      { $addToSet: { studentsEnrolled: userId } },
       { new: true }
     );
 
@@ -109,13 +143,15 @@ const enrollStudents = async (courses, userId) => {
     const enrolledStudent = await User.findByIdAndUpdate(
       userId,
       {
-        $push: {
+        $addToSet: {
           courses: courseId,
           courseProgress: courseProgress._id,
         },
       },
       { new: true }
     );
+
+    console.log("Updated user after enrollment:", enrolledStudent);
 
     await mailSender(
       enrolledStudent.email,

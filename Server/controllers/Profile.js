@@ -146,6 +146,8 @@ exports.updateDisplayPicture = async (req, res) => {
 exports.getEnrolledCourses = async (req, res) => {
   try {
     const userId = req.user.id
+    console.log("User ID:", userId)
+    console.log("inside enrolled courses");
     let userDetails = await User.findOne({
       _id: userId,
     })
@@ -159,6 +161,14 @@ exports.getEnrolledCourses = async (req, res) => {
         },
       })
       .exec()
+    
+    if (!userDetails) {
+  console.log("❌ User not found in DB for ID:", userId);
+  return res.status(400).json({
+    success: false,
+    message: `No user found for ID: ${userId}`,
+  });
+}
     userDetails = userDetails.toObject()
     var SubsectionLength = 0
     for (var i = 0; i < userDetails.courses.length; i++) {
@@ -202,6 +212,7 @@ exports.getEnrolledCourses = async (req, res) => {
       data: userDetails.courses,
     })
   } catch (error) {
+    console.log(error)
     return res.status(500).json({
       success: false,
       message: error.message,
